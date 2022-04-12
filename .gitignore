@@ -1,39 +1,212 @@
-# History files
-.Rhistory
-.Rapp.history
+# 04_2022_marinamudesto
 
-# Session Data files
-.RData
+# processoseletivo_chamada04-2022
+Candidata: Marina Mudesto Marques
 
-# User-specific files
-.Ruserdata
+> rm(list = ls(all.names = TRUE)) #Limpando os objetos do ambiente
+> 
+> setwd("G:/Meu Drive/IPEA") #Definindo o diretório
+> simulacao_ipea <- read.csv("G:/Meu Drive/IPEA/simulacao_ipea.csv", sep=";")
+>   View(simulacao_ipea)
+> library(tidyverse)
+-- Attaching packages ------------------------------------------------------------------ tidyverse 1.3.1 --
+v ggplot2 3.3.5     v purrr   0.3.4
+v tibble  3.1.4     v dplyr   1.0.8
+v tidyr   1.1.3     v stringr 1.4.0
+v readr   2.0.1     v forcats 0.5.1
 
-# Example code in package build process
-*-Ex.R
+> View(simulacao_ipea)
+> summary(simulacao_ipea)
+      ano          orgao               idade           sexo                uf             escolaridade   
+ Min.   :1990   Length:10000000    Min.   :18.00   Length:10000000    Length:10000000    Min.   :1.0     
+ 1st Qu.:1999   Class :character   1st Qu.:33.00   Class :character   Class :character   1st Qu.:3.0     
+ Median :2006   Mode  :character   Median :45.00   Mode  :character   Mode  :character   Median :4.0     
+ Mean   :2006                      Mean   :46.54                                         Mean   :3.3     
+ 3rd Qu.:2013                      3rd Qu.:60.00                                         3rd Qu.:4.0     
+ Max.   :2019                      Max.   :84.00                                         Max.   :5.0     
+                                                                                         NA's   :666254  
+     raca            remuneracao     
+ Length:10000000    Min.   :  832.1  
+ Class :character   1st Qu.: 3125.5  
+ Mode  :character   Median : 5420.1  
+                    Mean   : 5430.4  
+                    3rd Qu.: 7715.5  
+                    Max.   :29995.8  
+                                     
+> 
+> is.data.frame(simulacao_ipea)
+[1] TRUE
+> 
+> names(simulacao_ipea)
+[1] "ano"          "orgao"        "idade"        "sexo"         "uf"           "escolaridade"
+[7] "raca"         "remuneracao" 
+> dim(simulacao_ipea)
+[1] 10000000        8
+> head(simulacao_ipea)
+   ano  orgao idade sexo uf escolaridade     raca remuneracao
+1 1993    CNC    79      TO           NA Indigena     6799.73
+2 2007   Uesb    33    F MS           NA   Branco     9843.94
+3 2011   Ufma    60    M MG            5    Preto     7416.29
+4 2000   Ifad    34    M AC            3    Pardo     9416.94
+5 2013 Uniube    67    F RN            5 Indigena     2769.03
+6 2019   Uneb    49    M PB            3    Pardo     6157.14
 
-# Output files from R CMD build
-/*.tar.gz
+> #Questão 4: Qual é a quantidade de trabalhadores do sexo masculino com idade igual ou superior a 50 anos, registrados no estado da Bahia, no ano de 2019?
+> 
+> mydata4 <- subset(simulacao_ipea, sexo=="M" &
++                     uf=="BA" & idade >= 50 & ano==2019)
+> #Resposta: 3184 trabalhadores.
+> 
+> #Questão 5: Qual ano e estabelecimento apresenta maior quantidade de registros do sexo feminino?
+> 
+> Q5 <- simulacao_ipea |>
++   group_by(ano, orgao) |> 
++   summarize(valor_max = sum(sexo=="F"))
+`summarise()` has grouped output by 'ano'. You can override using the `.groups` argument.
+> 
+> max(Q5$valor_max)  #Procurando o valor máximo
+[1] 875
+> 
+> max_valor <- Q5 |>
++      group_by(ano, orgao) |> 
++      summarize(VM = max(valor_max==875))
+`summarise()` has grouped output by 'ano'. You can override using the `.groups` argument.
+>  max_valor$VM <- ifelse(max_valor$VM=="0",
++                                   NA, max_valor$VM)
+> na.omit(max_valor)
+# A tibble: 2 x 3
+# Groups:   ano [1]
+    ano orgao    VM
+  <int> <chr> <int>
+1  2017 ANA       1
+2  2017 SBB       1
+# Resposta: No ano 2017, os orgãoes ANA e SBB apresentaram a maior quantididade de registros do sexo feminino.
+  
+  
+> #Questão 6: Sabendo-se que o nível de escolaridade de um trabalhador vai de 1 até 5, qual é o percentual de trabalhadores, registrados no estabelecimento Ipea, com escolaridade nível 4 no ano de 2015?
+> 
+> mydata6 <- subset(simulacao_ipea, orgao=="Ipea" & ano==2015)
+> table(mydata6$escolaridade)
 
-# Output files from R CMD check
-/*.Rcheck/
+  1   2   3   4   5 
+ 80 169 250 448  87 
+> #Ou seja, dos 1.118 trabalhadores registrados no estabelecimento Ipea, 448 possuem escolaridade nível 4.
+> #Realizando a operação: 
+> (448/1118)*100
+[1] 40.07156
+> #Resposta: 40,07% (=~40,1%)
+> 
+> #Questão 7: Ao analisar os números de mulheres registradas no estabelecimento UFSJ, apenas para o de 2010, qual raça apresenta a menor quantidade de registros? Obs: Desconsiderar registros sem raça declarada */
+> 
+> mydata7 <- subset(simulacao_ipea, sexo=="F" & orgao=="UFSJ" & ano==2010)
+> # Total de Mulheres: 335
+> table(mydata7$raca)
 
-# RStudio files
-.Rproj.user/
+          Amarelo   Branco Indigena    Pardo    Preto 
+      32       25      114       26       85       53 
+> # A partir da tabulação, observa-se a subrrrepresentação das as mulheres de cor amarela (total de 26 registros) registradas na UFSJ.
+  
+> #Questão 8: Carregar um gráfico, preferencialmente nos formatos HTML, PNG, JPEG, e PDF, > #contendo uma série temporal de 1985 até 2019, que trate sobre a diferença de sexo e raça. Você pode explorar as variáveis que achar mais relevantes. 
+> 
+> 
+> #### ->>> OBSERVAÇÃO: Base com dados do período de 1990 a2019
+> # Variável de cor/raça
+> table(simulacao_ipea$raca)
 
-# produced vignettes
-vignettes/*.html
-vignettes/*.pdf
+          Amarelo   Branco Indigena    Pardo    Preto 
+  834387   832541  3333744   832701  2500052  1666575 
+> # Pretos e Pardos ( População Negra); Brancos e Amarelos (População Branca)
+> #Nova variável: cor.raca = negros; brancos
+ 
+> i <- which(simulacao_ipea$raca %in% c("Branco", "Amarelo"))
+> simulacao_ipea$cor.raca[i] <-  "Brancos"
+> i <- which(simulacao_ipea$raca %in% c("Preto", "Pardo"))
+> simulacao_ipea$cor.raca[i] <-  "Negros"
+> i <- which(simulacao_ipea$raca %in% c("Indigena"))
+> simulacao_ipea$cor.raca[i] <- "Outros"
+> simulacao_ipea$cor.raca <- ifelse(simulacao_ipea$cor.raca=="Outros",
++                               NA, simulacao_ipea$cor.raca)  #Transformando a categoria "Indígena" em missing
+> 
+> table(simulacao_ipea$raca)
 
-# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
-.httr-oauth
+          Amarelo   Branco Indigena    Pardo    Preto 
+  834387   832541  3333744   832701  2500052  1666575 
+> table(simulacao_ipea$cor.raca)
 
-# knitr and R markdown default cache directories
-*_cache/
-/cache/
+Brancos  Negros 
+4166285 4166627 
+> 
+> #Interseccionalidade: sexo e raça
 
-# Temporary files created by R markdown
-*.utf8.md
-*.knit.md
+> j <- which(simulacao_ipea$cor.raca=="Brancos" & simulacao_ipea$sexo=="M")
+> simulacao_ipea$sexo.raca[j] <-  "Homens Brancos"
+> 
+> j <- which(simulacao_ipea$cor.raca=="Brancos" & simulacao_ipea$sexo=="F")
+> simulacao_ipea$sexo.raca[j] <-  "Mulheres Brancas"
+> 
+> j <- which(simulacao_ipea$cor.raca=="Negros" & simulacao_ipea$sexo=="M")
+> simulacao_ipea$sexo.raca[j] <-  "Homens Negros"
+> 
+> j <- which(simulacao_ipea$cor.raca=="Negros" & simulacao_ipea$sexo=="F")
+> simulacao_ipea$sexo.raca[j] <-  "Mulheres Negras"
+> table(simulacao_ipea$sexo.raca)
 
-# R Environment Variables
-.Renviron
+  Homens Brancos    Homens Negros Mulheres Brancas  Mulheres Negras 
+         2081990          2084429          1389493          1388896 
+
+ 
+> tapply(simulacao_ipea$remuneracao, list(simulacao_ipea$ano, simulacao_ipea$sexo.raca), mean)
+     Homens Brancos Homens Negros Mulheres Brancas Mulheres Negras
+1990       5416.321      5433.632         5407.839        5435.266
+1991       5443.870      5446.972         5433.395        5436.323
+1992       5431.164      5404.305         5413.744        5440.917
+1993       5429.761      5431.488         5419.210        5444.590
+1994       5437.477      5417.814         5425.088        5429.722
+1995       5431.842      5423.341         5426.780        5444.745
+1996       5408.228      5432.603         5421.734        5419.680
+1997       5415.104      5440.264         5427.774        5434.694
+1998       5420.817      5434.719         5403.682        5468.366
+1999       5428.151      5428.586         5436.092        5444.151
+2000       5432.530      5431.233         5432.774        5432.642
+2001       5436.577      5420.612         5403.279        5434.983
+2002       5437.935      5422.972         5431.363        5442.438
+2003       5431.291      5439.699         5422.748        5458.177
+2004       5443.484      5415.945         5451.202        5445.831
+2005       5430.396      5430.773         5430.386        5432.604
+2006       5446.327      5409.528         5423.270        5421.948
+2007       5426.096      5437.423         5453.056        5421.137
+2008       5427.996      5413.685         5429.825        5434.347
+2009       5423.642      5420.096         5425.319        5413.654
+2010       5437.074      5412.198         5442.621        5434.046
+2011       5425.184      5436.014         5435.309        5413.307
+2012       5430.668      5440.688         5429.293        5444.624
+2013       5429.789      5406.990         5446.951        5426.783
+2014       5432.850      5422.437         5427.865        5415.286
+2015       5429.462      5436.259         5431.684        5434.791
+2016       5419.104      5414.987         5436.523        5430.989
+2017       5420.755      5421.935         5428.453        5417.667
+2018       5433.626      5436.034         5438.173        5431.910
+2019       5453.073      5426.985         5447.491        5432.662
+> 
+> collapse <- simulacao_ipea |>
++   group_by(ano, sexo.raca) |> 
++   summarize(rem_media = mean(remuneracao)) |>
++   na.omit(collapse)
+`summarise()` has grouped output by 'ano'. You can override using the `.groups` argument.
+> 
+> is.data.frame(collapse)
+[1] TRUE
+  
+> #Gráfico: série temporal
+  Período: 1990 a 2019
+  Nível: Brasil.
+
+> ggplot(data = collapse, aes(x=ano, y=rem_media)) +
++   geom_line() +
++   facet_grid(. ~ sexo.raca)+
++   labs(title = 'Diferenciais de rendimentos por gênero e raça, Brasil, 1990 a 2019',
++        x = 'Ano',
++        y = 'Remuneração média (R$)') +
++          theme_bw()
+> 
+> #Fim!
